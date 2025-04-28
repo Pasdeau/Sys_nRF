@@ -1,0 +1,146 @@
+/ {
+	chosen {
+		nordic,nus-uart = &uart0;
+	};
+};
+
+/ {
+	aliases {
+		reset = &reset_pin;
+        drdy = &data_ready;
+
+		ext0 = &ext_0;
+        ext1 = &ext_1;
+        ext2 = &ext_2;
+        ext3 = &ext_3;
+
+        swext0 = &button_0;
+        swext1 = &button_1;
+        swext2 = &button_2;
+        swext3 = &button_3;
+
+		shdn = &shdn_pin;
+	};
+};
+
+/ {
+	leds {
+		compatible = "gpio-leds";
+        
+		reset_pin: rest {
+			gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+		};
+
+		ext_0: lambda_660 {
+            gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
+        };
+
+        ext_1: lambda_735 {
+            gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
+        };
+
+        ext_2: lambda_810 {
+            gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+        };
+
+        ext_3: lambda_940 {
+            gpios = <&gpio0 25 GPIO_ACTIVE_LOW>;
+        };
+
+        shdn_pin: shut_down {
+            gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+        };
+
+        data_ready: drdy_pin {
+            gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+        };
+	};
+
+	buttons {
+        compatible = "gpio-keys";
+        
+        button_0: Change {
+            gpios = <&gpio1 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+        };
+
+        button_1: Increase {
+            gpios = <&gpio1 5 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+        };
+
+        button_2: Decrease {
+            gpios = <&gpio1 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+        };
+
+        button_3: Stop {
+            gpios = <&gpio1 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+        };
+    };
+};
+
+
+&pinctrl {
+	spi_dummy: spi_dummy {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 8)>,
+                <NRF_PSEL(SPIM_MISO, 0, 24)>,
+                <NRF_PSEL(SPIM_MOSI, 0, 9)>;
+        };
+    };
+	spi_dummy_sleep: spi_dummy_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 8)>,
+                <NRF_PSEL(SPIM_MISO, 0, 24)>,
+                <NRF_PSEL(SPIM_MOSI, 0, 9)>;
+			low-power-enable;		
+        };
+    };
+};
+
+&spi2 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&spi_dummy>;
+	pinctrl-1 = <&spi_dummy_sleep>;
+};
+
+&gpio0 {
+	status = "okay";
+	label = "GPIO_0";
+};
+
+&gpio1 {
+	status = "okay";
+	label = "GPIO_1";
+};
+
+&pinctrl {
+	spi3_default: spi3_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 15)>,
+					<NRF_PSEL(SPIM_MOSI, 1, 13)>,
+					<NRF_PSEL(SPIM_MISO, 1, 14)>;
+		};
+	};
+
+	spi3_sleep: spi3_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 15)>,
+					<NRF_PSEL(SPIM_MOSI, 1, 13)>,
+					<NRF_PSEL(SPIM_MISO, 1, 14)>;
+			low-power-enable;
+		};
+	};
+};
+
+spi_ad8403: &spi3 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+	spi_cs_ad8403:  ad8403@0 {
+		reg = <0>;
+	};
+};
